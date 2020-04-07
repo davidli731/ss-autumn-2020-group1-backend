@@ -14,6 +14,7 @@ class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, unique=True, nullable=False)
     first_name = db.Column(db.String(191), nullable=False)
     last_name = db.Column(db.String(191), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -22,7 +23,10 @@ class User(db.Model):
     updated_date = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-    def __init__(self, email, password):
+    def __init__(self, student_id, first_name, last_name, email, password):
+        self.student_id = student_id
+        self.first_name = first_name
+        self.last_name = last_name
         self.email = email
         self.password = generate_password_hash(password, method='sha256')
 

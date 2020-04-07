@@ -4,7 +4,11 @@ api.py
   REST requests and responses
 """
 
-from flask import Blueprint, jsonify, request, make_response
+from flask import Blueprint, jsonify, request, make_response, current_app
+from datetime import datetime, timedelta
+from functools import wraps
+from .models import db, User
+import jwt
 
 api = Blueprint('api', __name__)
 
@@ -14,7 +18,7 @@ def index():
     return make_response(jsonify(response),200)
 
 
-@api.route('/register/', methods=('POST',))
+@api.route('/register', methods=('POST',))
 def register():
     data = request.get_json()
     user = User(**data)
@@ -23,7 +27,7 @@ def register():
     return jsonify(user.to_dict()), 201
 
 
-@api.route('/login/', methods=('POST',))
+@api.route('/login', methods=('POST',))
 def login():
     data = request.get_json()
     user = User.authenticate(**data)
@@ -33,8 +37,8 @@ def login():
 
     token = jwt.encode({
         'sub': user.email,
-        'iat':datetime.utcnow(),
-        'exp': datetime.utcnow() + timedelta(minutes=30)},
+        'iat':str(datetime.utcnow()),
+        'exp': str(datetime.utcnow() + timedelta(minutes=30))},
         current_app.config['SECRET_KEY'])
     return jsonify({ 'token': token.decode('UTF-8') })
 
