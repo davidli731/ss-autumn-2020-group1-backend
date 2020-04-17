@@ -8,7 +8,7 @@ from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 
 from quantumapi.application import create_app
-from quantumapi.models import db, User
+from quantumapi.models import db, User, Circuit
 
 app = create_app()
 
@@ -23,7 +23,8 @@ manager.add_command('db', MigrateCommand)
 def shell_ctx():
     return dict(app=app,
                 db=db,
-                User=User
+                User=User,
+                Circuit=Circuit
                )
 
 if __name__ == '__main__':

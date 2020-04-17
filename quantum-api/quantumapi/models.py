@@ -13,8 +13,7 @@ db = SQLAlchemy()
 class User(db.Model):
     __tablename__ = 'users'
 
-    id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, unique=True, nullable=False)
+    student_id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(191), nullable=False)
     last_name = db.Column(db.String(191), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -46,3 +45,19 @@ class User(db.Model):
 
     def to_dict(self):
         return dict(id=self.id, email=self.email)
+
+
+class Circuit(db.Model):
+    __tablename__ = 'circuits'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.student_id'), nullable=False)
+    circuit_name = db.Column(db.String(191), unique=True, nullable=False)
+    circuit_json = db.Column(db.Text(4294000000), nullable=False)
+    created_date = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_date = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self, student_id, circuit_name, circuit_json):
+        self.student_id = student_id
+        self.circuit_name = circuit_name
+        self.circuit_json = circuit_json
