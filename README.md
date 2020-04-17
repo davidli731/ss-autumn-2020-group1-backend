@@ -16,6 +16,16 @@ Execute the following bash command from the project root folder to start the API
 python appserver.py
 ```
 
+## Making database migrations using SQLAlchemy ORM
+Create an initial migration file to translate the classes in models.py to SQL that will generate corresponding tables
+```bash
+python manage.py db migrate
+```
+Run the migration to upgrade the database with the tables described in the prior step
+```bash
+python manage.py db upgrade
+```
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 

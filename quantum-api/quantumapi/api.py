@@ -6,8 +6,10 @@ api.py
 
 from flask import Blueprint, jsonify, request, make_response, current_app
 from datetime import datetime, timedelta
+from sqlalchemy import exc
 from functools import wraps
-from .models import db, User
+from .models import db, User, Circuit
+from .services.calculate_circuit import calculate_circuit
 import jwt
 
 api = Blueprint('api', __name__)
@@ -75,3 +77,34 @@ def token_required(f):
             return jsonify(invalid_msg), 401
 
     return _verify
+
+
+# Take in an input json of circuit components, return circuit output JSON
+@api.route('/calculate', methods=('GET',))
+def calculate():
+    try:
+        data = request.json
+        engine = calculate_circuit(data)
+        circuit_output = engine.calculate()
+
+        return circuit_output
+    except Exception as e:
+        return jsonify({ 'message': e.args })
+
+
+# Fetch student_id, circuit name and circuit JSON from payload and save to DB
+@api.route('/save-circuit', methods=('POST',))
+def save_circuit():
+    try:
+        data = request.get_json()
+        print(data)
+        circuit = Circuit(**data)
+        db.session.add(circuit)
+        db.session.commit()
+        db.session.close()
+
+        return jsonify({ 'message': "circuit saved successfully" })
+    except exc.SQLAlchemyError as e:
+        db.session.rollback()
+
+        return jsonify({ 'message': e.args })
