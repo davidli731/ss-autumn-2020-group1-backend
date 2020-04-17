@@ -97,7 +97,6 @@ def calculate():
 def save_circuit():
     try:
         data = request.get_json()
-        print(data)
         circuit = Circuit(**data)
         db.session.add(circuit)
         db.session.commit()

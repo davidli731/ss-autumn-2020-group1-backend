@@ -53,11 +53,13 @@ class Circuit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('users.student_id'), nullable=False)
     circuit_name = db.Column(db.String(191), unique=True, nullable=False)
-    circuit_json = db.Column(db.Text(4294000000), nullable=False)
+    circuit_input = db.Column(db.Text(4294000000), nullable=False)
+    circuit_output_json = db.Column(db.Text(4294000000), nullable=False)
     created_date = db.Column(db.DateTime, default=datetime.utcnow)
     updated_date = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __init__(self, student_id, circuit_name, circuit_json):
+    def __init__(self, student_id, circuit_name, circuit_input, circuit_output_json):
         self.student_id = student_id
         self.circuit_name = circuit_name
-        self.circuit_json = circuit_json
+        self.circuit_input = circuit_input
+        self.circuit_output_json = circuit_output_json

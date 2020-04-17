@@ -15,7 +15,7 @@ class calculate_circuit():
 
         # get JSON and assign to ops
         # convert JSON to dictionary?
-        ops = self.data["cols"]
+        ops = self.data["circuit_input"]
 
         # length of eps = number of columns
         collenth = len(ops)
