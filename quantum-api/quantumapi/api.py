@@ -107,3 +107,15 @@ def save_circuit():
         db.session.rollback()
 
         return jsonify({ 'message': e.args })
+
+# Fetch student_id, circuit name and circuit JSON from payload and save to DB
+@api.route('/get-circuit', methods=('POST',))
+def get_circuit():
+    data = request.get_json()
+    circuit = Circuit.search_circuit(**data)
+
+    if not circuit:
+        return jsonify({'message': 'User or Circuit Unavailable'}), 400
+
+    return "Circuit Input: " + circuit.circuit_input + "\n" + \
+           "Circuit Output: " + circuit.circuit_output_json

@@ -63,3 +63,20 @@ class Circuit(db.Model):
         self.circuit_name = circuit_name
         self.circuit_input = circuit_input
         self.circuit_output_json = circuit_output_json
+
+    # Search function for circuit given student_id and circuit_name
+    @classmethod
+    def search_circuit(cls, **kwargs):
+        student_id = kwargs.get('student_id')
+        circuit_name = kwargs.get('circuit_name')
+
+        if not student_id or not circuit_name:
+            return None
+
+        user = cls.query.filter_by(student_id=student_id).first()
+        if user is not None:
+            circuit = user.query.filter_by(circuit_name=circuit_name).first()
+            if circuit is not None:
+                return circuit
+
+        return None
