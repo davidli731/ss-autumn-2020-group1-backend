@@ -24,9 +24,6 @@ class calculate_circuit():
         for i in ops:
             if (len(i) > numqubits): numqubits = len(i)
 
-        # declares memory to store the output
-        ro = p.declare("ro", "BIT", numqubits)
-
         # loops over each gate in ops and applies the gate
         for i in range(collenth):
             # stores what type of special gate it is (CNOT, CCNOT, CZ, etc)
@@ -122,9 +119,16 @@ class calculate_circuit():
         i = 0
         for item in prob_dict:
             struct = {}
+            # The integer value of the qubit state
             struct["int"] = int(item,2)
+            # The complex number representing the qubit state
             struct["val"] = "{:.5f}".format((round(amp_arr[i],5))).strip("()")
-            struct["prob"] = "{:.5f}".format((round(prob_dict[item],5)))
+            # The probability of obtaining the qubit state
+            struct["prob"] = "{:.5f}".format(round(prob_dict[item],5))
+            # The magnitude of the qubit state
+            struct["mag"] = "{:.5f}".format(round(abs(amp_arr[i]),5))
+            # The phase of the qubit state
+            # struct["phase"] = ...
             out[item] = struct
             i = i + 1
 
