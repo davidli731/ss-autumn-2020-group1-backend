@@ -41,20 +41,20 @@ class calculate_circuit():
                 elif (currentgate=="Z"): p += Z(j)
                
                 # If the gate is a quarter turn (+/- 90 deg or pi/2) for X, Y or Z, apply the respective gate
-                elif (currentgate=="X^1/2"): p += RX(np.pi/2, j)
-                elif (currentgate=="X^-1/2"): p += RX(-np.pi/2, j)
-                elif (currentgate=="Y^1/2"): p += RY(np.pi/2, j)
-                elif (currentgate=="Y^-1/2"): p += RY(-np.pi/2, j)
-                elif (currentgate=="Z^1/2" or currentgate=="S"): p += S(j) # same as p += RZ(np.pi/2, j)
-                elif (currentgate=="Z^-1/2" or currentgate=="S^-1" ): p += RZ(-np.pi/2,j)
+                elif (currentgate=="X^1/2" or currentgate=="X^½"): p += RX(np.pi/2, j)
+                elif (currentgate=="X^-1/2" or currentgate=="X^-½"): p += RX(-np.pi/2, j)
+                elif (currentgate=="Y^1/2" or currentgate=="Y^½"): p += RY(np.pi/2, j)
+                elif (currentgate=="Y^-1/2" or currentgate=="Y^-½"): p += RY(-np.pi/2, j)
+                elif (currentgate=="Z^1/2" or currentgate=="S" or currentgate=="Z^½"): p += RZ(np.pi/2, j)
+                elif (currentgate=="Z^-1/2" or currentgate=="S^-1" or currentgate=="Z^-½"): p += RZ(-np.pi/2,j)
 
                 # If the gate is an eighth turn (+/- 45 deg or pi/4) for X, Y or Z, apply the respective gate
-                elif (currentgate=="X^1/4"): p += RX(np.pi/4, j)
-                elif (currentgate=="X^-1/4"): p += RX(-np.pi/4, j)
-                elif (currentgate=="Y^1/4"): p += RY(np.pi/4, j)
-                elif (currentgate=="Y^-1/4"): p += RY(-np.pi/4, j)
-                elif (currentgate=="Z^1/4" or currentgate=="T"): p += T(j) # same as p += RZ(np.pi/4, j)
-                elif (currentgate=="Z^-1/4" or currentgate=="T^-1"): p += RZ(-np.pi/4, j)
+                elif (currentgate=="X^1/4" or currentgate=="X^¼"): p += RX(np.pi/4, j)
+                elif (currentgate=="X^-1/4" or currentgate=="X^-¼"): p += RX(-np.pi/4, j)
+                elif (currentgate=="Y^1/4" or currentgate=="Y^¼"): p += RY(np.pi/4, j)
+                elif (currentgate=="Y^-1/4" or currentgate=="Y^-¼"): p += RY(-np.pi/4, j)
+                elif (currentgate=="Z^1/4" or currentgate=="T" or currentgate=="Z^¼"): p += RZ(np.pi/4, j)
+                elif (currentgate=="Z^-1/4" or currentgate=="T^-1" or currentgate=="Z^-¼"): p += RZ(-np.pi/4, j)
         
                 # If the gate is a SWAP gate, check if another one has been found before and perform the SWAP operation
                 # If not, keep track of its location until we find the other SWAP gate
