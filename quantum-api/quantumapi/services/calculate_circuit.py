@@ -35,14 +35,30 @@ class calculate_circuit():
             specialloc = []
 
             for j in range(len(ops[i])):
-                currentgate = ops[i][j]
+                currentgate = str(ops[i][j]).upper()
 
                 # If the gate is X, Y, Z or H, apply the gate to qubit #j
-                if(currentgate=="X"): p += X(j)
-                elif (currentgate=="H"): p += H(j)
+                if (currentgate=="H"): p += H(j)
+                elif (currentgate=="X"): p += X(j)
                 elif (currentgate=="Y"): p += Y(j)
                 elif (currentgate=="Z"): p += Z(j)
-                elif (currentgate=="T"): p += T(j)
+               
+                # If the gate is a quarter turn (+/- 90 deg or pi/2) for X, Y or Z, apply the respective gate
+                elif (currentgate=="X^1/2"): p += RX(np.pi/2, j)
+                elif (currentgate=="X^-1/2"): p += RX(-np.pi/2, j)
+                elif (currentgate=="Y^1/2"): p += RY(np.pi/2, j)
+                elif (currentgate=="Y^-1/2"): p += RY(-np.pi/2, j)
+                elif (currentgate=="Z^1/2" or currentgate=="S"): p += S(j) # same as p += RZ(np.pi/2, j)
+                elif (currentgate=="Z^-1/2" or currentgate=="S^-1" ): p += RZ(-np.pi/2,j)
+
+                # If the gate is an eighth turn (+/- 45 deg or pi/4) for X, Y or Z, apply the respective gate
+                elif (currentgate=="X^1/4"): p += RX(np.pi/4, j)
+                elif (currentgate=="X^-1/4"): p += RX(-np.pi/4, j)
+                elif (currentgate=="Y^1/4"): p += RY(np.pi/4, j)
+                elif (currentgate=="Y^-1/4"): p += RY(-np.pi/4, j)
+                elif (currentgate=="Z^1/4" or currentgate=="T"): p += T(j) # same as p += RZ(np.pi/4, j)
+                elif (currentgate=="Z^-1/4" or currentgate=="T^-1"): p += RZ(-np.pi/4, j)
+        
                 # If the gate is a SWAP gate, check if another one has been found before and perform the SWAP operation
                 # If not, keep track of its location until we find the other SWAP gate
                 elif (currentgate=="SWAP"):
