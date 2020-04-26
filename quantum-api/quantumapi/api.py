@@ -117,5 +117,5 @@ def get_circuit():
     if not circuit:
         return jsonify({'message': 'User or Circuit Unavailable'}), 400
 
-    return "Circuit Input: " + circuit.circuit_input + "\n" + \
-           "Circuit Output: " + circuit.circuit_output_json
+    return jsonify({ 'circuit_input': circuit.circuit_input,
+                     'circuit_output': circuit.circuit_output_json})
