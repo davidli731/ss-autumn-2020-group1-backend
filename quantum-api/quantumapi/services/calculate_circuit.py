@@ -24,9 +24,6 @@ class calculate_circuit():
         for i in ops:
             if (len(i) > numqubits): numqubits = len(i)
 
-        # declares memory to store the output
-        ro = p.declare("ro", "BIT", numqubits)
-
         # loops over each gate in ops and applies the gate
         for i in range(collenth):
             # stores what type of special gate it is (CNOT, CCNOT, CZ, etc)
@@ -35,14 +32,30 @@ class calculate_circuit():
             specialloc = []
 
             for j in range(len(ops[i])):
-                currentgate = ops[i][j]
+                currentgate = str(ops[i][j]).upper()
 
                 # If the gate is X, Y, Z or H, apply the gate to qubit #j
-                if(currentgate=="X"): p += X(j)
-                elif (currentgate=="H"): p += H(j)
+                if (currentgate=="H"): p += H(j)
+                elif (currentgate=="X"): p += X(j)
                 elif (currentgate=="Y"): p += Y(j)
                 elif (currentgate=="Z"): p += Z(j)
-                elif (currentgate=="T"): p += T(j)
+               
+                # If the gate is a quarter turn (+/- 90 deg or pi/2) for X, Y or Z, apply the respective gate
+                elif (currentgate=="X^1/2" or currentgate=="X^½"): p += RX(np.pi/2, j)
+                elif (currentgate=="X^-1/2" or currentgate=="X^-½"): p += RX(-np.pi/2, j)
+                elif (currentgate=="Y^1/2" or currentgate=="Y^½"): p += RY(np.pi/2, j)
+                elif (currentgate=="Y^-1/2" or currentgate=="Y^-½"): p += RY(-np.pi/2, j)
+                elif (currentgate=="Z^1/2" or currentgate=="S" or currentgate=="Z^½"): p += RZ(np.pi/2, j)
+                elif (currentgate=="Z^-1/2" or currentgate=="S^-1" or currentgate=="Z^-½"): p += RZ(-np.pi/2,j)
+
+                # If the gate is an eighth turn (+/- 45 deg or pi/4) for X, Y or Z, apply the respective gate
+                elif (currentgate=="X^1/4" or currentgate=="X^¼"): p += RX(np.pi/4, j)
+                elif (currentgate=="X^-1/4" or currentgate=="X^-¼"): p += RX(-np.pi/4, j)
+                elif (currentgate=="Y^1/4" or currentgate=="Y^¼"): p += RY(np.pi/4, j)
+                elif (currentgate=="Y^-1/4" or currentgate=="Y^-¼"): p += RY(-np.pi/4, j)
+                elif (currentgate=="Z^1/4" or currentgate=="T" or currentgate=="Z^¼"): p += RZ(np.pi/4, j)
+                elif (currentgate=="Z^-1/4" or currentgate=="T^-1" or currentgate=="Z^-¼"): p += RZ(-np.pi/4, j)
+        
                 # If the gate is a SWAP gate, check if another one has been found before and perform the SWAP operation
                 # If not, keep track of its location until we find the other SWAP gate
                 elif (currentgate=="SWAP"):
@@ -106,9 +119,16 @@ class calculate_circuit():
         i = 0
         for item in prob_dict:
             struct = {}
+            # The integer value of the qubit state
             struct["int"] = int(item,2)
+            # The complex number representing the qubit state
             struct["val"] = "{:.5f}".format((round(amp_arr[i],5))).strip("()")
-            struct["prob"] = "{:.5f}".format((round(prob_dict[item],5)))
+            # The probability of obtaining the qubit state
+            struct["prob"] = "{:.5f}".format(round(prob_dict[item],5))
+            # The magnitude of the qubit state
+            struct["mag"] = "{:.5f}".format(round(abs(amp_arr[i]),5))
+            # The phase of the qubit state
+            # struct["phase"] = ...
             out[item] = struct
             i = i + 1
 
