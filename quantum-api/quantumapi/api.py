@@ -87,7 +87,7 @@ def calculate():
         engine = calculate_circuit(data)
         circuit_output = engine.calculate()
 
-        return circuit_output
+        return jsonify({'results': circuit_output})
     except Exception as e:
         return jsonify({ 'message': e.args })
 
