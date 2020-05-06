@@ -120,7 +120,7 @@ class calculate_circuit():
         for item in prob_dict:
             struct = {}
             # The integer value of the qubit state
-            struct["int"] = int(item,2)
+            struct["int"] = "{:.0f}".format(int(item,2))
             # The complex number representing the qubit state
             struct["val"] = "{:.5f}".format((round(amp_arr[i],5))).strip("()")
             # The probability of obtaining the qubit state

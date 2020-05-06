@@ -80,14 +80,13 @@ def token_required(f):
 
 
 # Take in an input json of circuit components, return circuit output JSON
-@api.route('/calculate', methods=('GET',))
+@api.route('/calculate', methods=('POST',))
 def calculate():
     try:
         data = request.json
         engine = calculate_circuit(data)
         circuit_output = engine.calculate()
-
-        return circuit_output
+        return jsonify(circuit_output)
     except Exception as e:
         return jsonify({ 'message': e.args })
 
