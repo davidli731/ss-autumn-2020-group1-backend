@@ -106,3 +106,22 @@ def save_circuit():
         db.session.rollback()
 
         return jsonify({ 'message': e.args })
+        
+# Delete circuit based on student_id and circuit name found in payload
+@api.route('/delete-circuit', methods=('POST',))
+def delete_circuit():
+    try:
+        data = request.get_json()
+        to_delete_algorithm = Circuit.query.filter_by(circuit_name=data['circuit_name']).filter_by(student_id=data['student_id']).first()
+
+        if to_delete_algorithm:
+            db.session.delete(to_delete_algorithm)
+            db.session.commit()
+            return jsonify({ 'message': "Circuit found and deleted"}), 200
+        else:
+            return jsonify({ 'message': "Circuit not found"}), 400
+        
+    except exc.SQLAlchemyError as e:
+        db.session.rollback()
+
+        return jsonify({ 'message': e.args })
