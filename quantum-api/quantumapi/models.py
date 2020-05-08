@@ -50,7 +50,7 @@ class User(db.Model):
         return user
 
     def to_dict(self):
-        return dict(id=self.id, email=self.email)
+        return dict(id=self.student_id, email=self.email)
 
 
 class Circuit(db.Model):
@@ -70,4 +70,4 @@ class Circuit(db.Model):
         self.circuit_name = circuit_name
         self.circuit_input = circuit_input
         self.circuit_output_json = circuit_output_json
-        self.algorithm_grade = algorithm_grade
+        self.algorithm_grade = grade
