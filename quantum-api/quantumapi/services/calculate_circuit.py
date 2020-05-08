@@ -15,7 +15,10 @@ class calculate_circuit():
         p = Program()
 
         # get JSON, load the data from the string (convert to dictionary), assign to ops
-        ops = json.loads(self.data["circuit_input"])
+        try:
+            ops = json.loads(self.data["circuit_input"])
+        except:
+            ops = self.data["circuit_input"]
         # length of eps = number of columns
         collenth = len(ops)
         numqubits = 0
