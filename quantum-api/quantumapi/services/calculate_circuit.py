@@ -1,4 +1,5 @@
 import numpy as np
+import json
 from pyquil import Program, get_qc
 from pyquil.gates import *
 from pyquil.api import WavefunctionSimulator
@@ -13,17 +14,17 @@ class calculate_circuit():
 
         p = Program()
 
-        # get JSON and assign to ops
-        # convert JSON to dictionary?
-        ops = self.data["circuit_input"]
-
+        # get JSON, load the data from the string (convert to dictionary), assign to ops
+        try:
+            ops = json.loads(self.data["circuit_input"])
+        except:
+            ops = self.data["circuit_input"]
         # length of eps = number of columns
         collenth = len(ops)
         numqubits = 0
         # max length of any number of operations per column = number of qubits used
         for i in ops:
             if (len(i) > numqubits): numqubits = len(i)
-
         # loops over each gate in ops and applies the gate
         for i in range(collenth):
             # stores what type of special gate it is (CNOT, CCNOT, CZ, etc)
@@ -46,7 +47,7 @@ class calculate_circuit():
                 elif (currentgate=="Y^1/2" or currentgate=="Y^½"): p += RY(np.pi/2, j)
                 elif (currentgate=="Y^-1/2" or currentgate=="Y^-½"): p += RY(-np.pi/2, j)
                 elif (currentgate=="Z^1/2" or currentgate=="S" or currentgate=="Z^½"): p += RZ(np.pi/2, j)
-                elif (currentgate=="Z^-1/2" or currentgate=="S^-1" or currentgate=="Z^-½"): p += RZ(-np.pi/2,j)
+                elif (currentgate=="Z^-1/2" or currentgate=="S^-1" or currentgate=="Z^-½"): p += RZ(-np.pi/2, j)
 
                 # If the gate is an eighth turn (+/- 45 deg or pi/4) for X, Y or Z, apply the respective gate
                 elif (currentgate=="X^1/4" or currentgate=="X^¼"): p += RX(np.pi/4, j)
@@ -120,13 +121,13 @@ class calculate_circuit():
         for item in prob_dict:
             struct = {}
             # The integer value of the qubit state
-            struct["int"] = "{:.0f}".format(int(item,2))
+            struct["int"] = "{:.0f}".format(int(item, 2))
             # The complex number representing the qubit state
-            struct["val"] = "{:.5f}".format((round(amp_arr[i],5))).strip("()")
+            struct["val"] = "{:.5f}".format((round(amp_arr[i], 5))).strip("()")
             # The probability of obtaining the qubit state
-            struct["prob"] = "{:.5f}".format(round(prob_dict[item],5))
+            struct["prob"] = "{:.5f}".format(round(prob_dict[item], 5))
             # The magnitude of the qubit state
-            struct["mag"] = "{:.5f}".format(round(abs(amp_arr[i]),5))
+            struct["mag"] = "{:.5f}".format(round(abs(amp_arr[i]), 5))
             # The phase of the qubit state
             # struct["phase"] = ...
             out[item] = struct

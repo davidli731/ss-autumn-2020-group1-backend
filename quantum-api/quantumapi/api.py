@@ -113,10 +113,10 @@ def save_circuit():
 def delete_circuit():
     try:
         data = request.get_json()
-        to_delete_algorithm = Circuit.query.filter_by(circuit_name=data['circuit_name']).filter_by(student_id=data['student_id']).first()
+        to_delete_circuit = Circuit.query.filter_by(circuit_name=data['circuit_name']).filter_by(student_id=data['student_id']).first()
 
-        if to_delete_algorithm:
-            db.session.delete(to_delete_algorithm)
+        if to_delete_circuit:
+            db.session.delete(to_delete_circuit)
             db.session.commit()
             return jsonify({ 'message': "Circuit found and deleted"}), 200
         else:
@@ -126,3 +126,43 @@ def delete_circuit():
         db.session.rollback()
 
         return jsonify({ 'message': e.args })
+
+# Update circuit grade and flag is_graded = True based on student_id, circuit name and grade found in payload
+@api.route('/grade-circuit', methods=('POST',))
+def grade_circuit():
+    try:
+        data = request.get_json()
+        to_grade_circuit = Circuit.query.filter_by(circuit_name=data['circuit_name']).filter_by(student_id=data['student_id']).first()
+
+        if to_grade_circuit:
+            to_grade_circuit.algorithm_grade = data['grade']
+            to_grade_circuit.is_graded = True
+            db.session.commit()
+            return jsonify({ 'message': "Circuit grade updated successfully"}), 200
+        else:
+            return jsonify({ 'message': "Circuit not found"}), 400
+        
+    except exc.SQLAlchemyError as e:
+        db.session.rollback()
+
+        return jsonify({ 'message': e.args })
+        
+# Update circuit flag is_submitted = True based on student_id and circuit name found in payload
+@api.route('/submit-circuit', methods=('POST',))
+def submit_circuit():
+    try:
+        data = request.get_json()
+        to_submit_circuit = Circuit.query.filter_by(circuit_name=data['circuit_name']).filter_by(student_id=data['student_id']).first()
+
+        if to_submit_circuit:
+            to_submit_circuit.is_submitted = True
+            db.session.commit()
+            return jsonify({ 'message': "Circuit submitted successfully"}), 200
+        else:
+            return jsonify({ 'message': "Circuit not found"}), 400
+        
+    except exc.SQLAlchemyError as e:
+        db.session.rollback()
+
+        return jsonify({ 'message': e.args })
+        

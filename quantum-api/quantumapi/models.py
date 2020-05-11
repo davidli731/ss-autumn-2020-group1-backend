@@ -62,6 +62,8 @@ class Circuit(db.Model):
     circuit_input = db.Column(db.Text(4294000000), nullable=False)
     circuit_output_json = db.Column(db.Text(4294000000), nullable=False)
     algorithm_grade = db.Column(db.Integer)
+    is_submitted = db.Column(db.Boolean, default = False, nullable = False)
+    is_graded = db.Column(db.Boolean, default = False, nullable = False)
     created_date = db.Column(db.DateTime, default=datetime.utcnow)
     updated_date = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -71,3 +73,6 @@ class Circuit(db.Model):
         self.circuit_input = circuit_input
         self.circuit_output_json = circuit_output_json
         self.algorithm_grade = grade
+        self.is_submitted = False
+        self.is_graded = False
+        
