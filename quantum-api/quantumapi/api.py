@@ -16,14 +16,12 @@ import jwt
 api = Blueprint('api', __name__)
 
 @api.route('/')
-@cross_origin()
 def index():
     response = { 'Status': "API is up and running!" }
     return make_response(jsonify(response),200)
 
 
 @api.route('/register', methods=('POST',))
-@cross_origin()
 def register():
     data = request.get_json()
     user = User(**data)
@@ -33,7 +31,6 @@ def register():
 
 
 @api.route('/login', methods=('POST',))
-@cross_origin()
 def login():
     data = request.get_json()
     user = User.authenticate(**data)
@@ -85,7 +82,6 @@ def token_required(f):
 
 # Take in an input json of circuit components, return circuit output JSON
 @api.route('/calculate', methods=('POST',))
-@cross_origin()
 def calculate():
     try:
         data = request.json
@@ -98,7 +94,6 @@ def calculate():
 
 # Fetch student_id, circuit name and circuit JSON from payload and save to DB
 @api.route('/save-circuit', methods=('POST',))
-@cross_origin()
 def save_circuit():
     try:
         data = request.get_json()
@@ -115,7 +110,6 @@ def save_circuit():
         
 # Delete circuit based on student_id and circuit name found in payload
 @api.route('/delete-circuit', methods=('POST',))
-@cross_origin()
 def delete_circuit():
     try:
         data = request.get_json()
