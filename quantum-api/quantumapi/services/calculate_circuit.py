@@ -1,4 +1,5 @@
 import numpy as np
+import cmath
 import json
 from pyquil import Program, get_qc
 from pyquil.gates import *
@@ -128,8 +129,8 @@ class calculate_circuit():
             struct["prob"] = "{:.5f}".format(round(prob_dict[item], 5))
             # The magnitude of the qubit state
             struct["mag"] = "{:.5f}".format(round(abs(amp_arr[i]), 5))
-            # The phase of the qubit state
-            # struct["phase"] = ...
+            # The phase of the qubit state (obtained by measuring phase of the complex number and converting to)
+            struct["phase"] = "{:.5f}".format(round(np.degrees(cmath.phase(amp_arr[i])), 5))
             out[item] = struct
             i = i + 1
 
