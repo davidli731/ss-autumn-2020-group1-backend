@@ -1,8 +1,8 @@
 import numpy as np
 import cmath
 import json
-from pyquil import Program, get_qc
-from pyquil.gates import *
+from pyquil import Program
+import pyquil.gates as pqg
 from pyquil.api import WavefunctionSimulator
 
 
@@ -23,7 +23,7 @@ class calculate_circuit():
         # length of circuit = number of columns
         col_length = len(circuit)
         num_qubits = 0
-        # max length of any number of operations per column = number of qubits used
+        # max length of any number of operations per column = number of qubits / rows used
         for i in circuit:
             if len(i) > num_qubits: num_qubits = len(i)
         # loops over each gate in circuit and applies the gate
@@ -37,32 +37,32 @@ class calculate_circuit():
                 current_gate = str(circuit[i][j]).upper()
 
                 # If the gate is X, Y, Z or H, apply the gate to qubit #j
-                if current_gate in "H": p += H(j)
-                elif current_gate in "X": p += X(j)
-                elif current_gate in "Y": p += Y(j)
-                elif current_gate in "Z": p += Z(j)
+                if current_gate in "H": p += pqg.H(j)
+                elif current_gate in "X": p += pqg.X(j)
+                elif current_gate in "Y": p += pqg.Y(j)
+                elif current_gate in "Z": p += pqg.Z(j)
                
                 # If the gate is a quarter turn (+/- 90 deg or pi/2) for X, Y or Z, apply the respective gate
-                elif current_gate in ("X^1/2", "X^½"): p += RX(np.pi/2, j)
-                elif current_gate in ('X^-1/2', 'X^-½'): p += RX(-np.pi/2, j)
-                elif current_gate in ("Y^1/2", "Y^½"): p += RY(np.pi/2, j)
-                elif current_gate in ("Y^-1/2", "Y^-½"): p += RY(-np.pi/2, j)
-                elif current_gate in ("Z^1/2", "Z^½", "S"): p += RZ(np.pi/2, j)
-                elif current_gate in ("Z^-1/2", "Z^-½", "S^-1"): p += RZ(-np.pi/2, j)
+                elif current_gate in ("X^1/2", "X^½"): p += pqg.RX(np.pi/2, j)
+                elif current_gate in ('X^-1/2', 'X^-½'): p += pqg.RX(-np.pi/2, j)
+                elif current_gate in ("Y^1/2", "Y^½"): p += pqg.RY(np.pi/2, j)
+                elif current_gate in ("Y^-1/2", "Y^-½"): p += pqg.RY(-np.pi/2, j)
+                elif current_gate in ("Z^1/2", "Z^½", "S"): p += pqg.RZ(np.pi/2, j)
+                elif current_gate in ("Z^-1/2", "Z^-½", "S^-1"): p += pqg.RZ(-np.pi/2, j)
 
                 # If the gate is an eighth turn (+/- 45 deg or pi/4) for X, Y or Z, apply the respective gate
-                elif current_gate in ("X^1/4", "X^¼"): p += RX(np.pi/4, j)
-                elif current_gate in ("X^-1/4", "X^-¼"): p += RX(-np.pi/4, j)
-                elif current_gate in ("Y^1/4", "Y^¼"): p += RY(np.pi/4, j)
-                elif current_gate in ("Y^-1/4", "Y^-¼"): p += RY(-np.pi/4, j)
-                elif current_gate in ("Z^1/4", "Z^¼", "T"): p += RZ(np.pi/4, j)
-                elif current_gate in ("Z^-1/4", "Z^-¼", "T^-1"): p += RZ(-np.pi/4, j)
+                elif current_gate in ("X^1/4", "X^¼"): p += pqg.RX(np.pi/4, j)
+                elif current_gate in ("X^-1/4", "X^-¼"): p += pqg.RX(-np.pi/4, j)
+                elif current_gate in ("Y^1/4", "Y^¼"): p += pqg.RY(np.pi/4, j)
+                elif current_gate in ("Y^-1/4", "Y^-¼"): p += pqg.RY(-np.pi/4, j)
+                elif current_gate in ("Z^1/4", "Z^¼", "T"): p += pqg.RZ(np.pi/4, j)
+                elif current_gate in ("Z^-1/4", "Z^-¼", "T^-1"): p += pqg.RZ(-np.pi/4, j)
         
                 # If the gate is a SWAP gate, check if another one has been found before and perform the SWAP operation
                 # If not, keep track of its location until we find the other SWAP gate
                 elif current_gate in "SWAP":
                     if len(special_loc) == 1:
-                        p += SWAP(special_loc[0], j)
+                        p += pqg.SWAP(special_loc[0], j)
                         special_loc = []
                     else:
                         special_loc.append(j)
@@ -73,7 +73,7 @@ class calculate_circuit():
                 elif current_gate in "CNOT":
                     special_loc.insert(0, j)
                     if len(special_loc) == 2:
-                        p += CNOT(special_loc[1], special_loc[0])
+                        p += pqg.CNOT(special_loc[1], special_loc[0])
                         special_loc = []
                     else:
                         special_gate_type = "CNOT"
@@ -84,7 +84,7 @@ class calculate_circuit():
                 elif current_gate in "CCNOT":
                     special_loc.insert(0, j)
                     if len(special_loc) == 3:
-                        p += CCNOT(special_loc[2], special_loc[1], special_loc[0])
+                        p += pqg.CCNOT(special_loc[2], special_loc[1], special_loc[0])
                         special_loc = []
                     else:
                         special_gate_type = "CCNOT"
@@ -95,29 +95,33 @@ class calculate_circuit():
                 elif current_gate in "CZ":
                     special_loc.insert(0, j)
                     if len(special_loc) == 2:
-                        p += CZ(special_loc[1], special_loc[0])
+                        p += pqg.CZ(special_loc[1], special_loc[0])
                         special_loc = []
                     else:
                         special_gate_type = "CZ"
 
                 # If a control is found, add it to the list of special components
                 # If we have found a special gate and the required amount of controls, perform the operation & clear the special list and the special gate type
-                elif current_gate in "•": 
+                elif current_gate in "•":
                     special_loc.append(j)
                     if special_gate_type not in "NULL":
                         if len(special_loc) == 2:
-                            if special_gate_type in "CNOT": p += CNOT(special_loc[1], special_loc[0])
-                            elif special_gate_type in "CZ": p += CZ(special_loc[1], special_loc[0])
-                        elif len(special_loc) == 3: p += CCNOT(special_loc[2],special_loc[1], special_loc[0])
+                            if special_gate_type in "CNOT": p += pqg.CNOT(special_loc[1], special_loc[0])
+                            elif special_gate_type in "CZ": p += pqg.CZ(special_loc[1], special_loc[0])
+                        elif len(special_loc) == 3: p += pqg.CCNOT(special_loc[2], special_loc[1], special_loc[0])
                         special_loc = []
                         special_gate_type = "NULL"
                     
+        results = self.construct_results_dict(p)
+
+        return results
+     
+    def construct_results_dict(self, qubit_program):
         wf_sim = WavefunctionSimulator()
-        wavefunction = wf_sim.wavefunction(p)
+        wavefunction = wf_sim.wavefunction(qubit_program)
         amp_arr = wavefunction.amplitudes
         prob_dict = wavefunction.get_outcome_probs()
-
-        out = {}
+        results_dict = {}
         i = 0
         for item in prob_dict:
             struct = {}
@@ -129,10 +133,8 @@ class calculate_circuit():
             struct["prob"] = "{:.5f}".format(round(prob_dict[item], 5))
             # The magnitude of the qubit state
             struct["mag"] = "{:.5f}".format(round(abs(amp_arr[i]), 5))
-            # The phase of the qubit state (obtained by measuring phase of the complex number and converting to)
+            # The phase of the qubit state (obtained by measuring phase of the complex number and converting to degrees)
             struct["phase"] = "{:.5f}".format(round(np.degrees(cmath.phase(amp_arr[i])), 5))
-            out[item] = struct
+            results_dict[item] = struct
             i = i + 1
-
-        return out
-     
+        return results_dict
