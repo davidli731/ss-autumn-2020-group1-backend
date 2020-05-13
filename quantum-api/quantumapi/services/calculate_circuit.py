@@ -1,6 +1,8 @@
 import numpy as np
+import math
 import cmath
 import json
+import pyquil
 from pyquil import Program
 from pyquil.quil import DefGate
 import pyquil.gates as pqg
@@ -63,7 +65,7 @@ class calculate_circuit():
                 elif current_gate in ("Z^-1/2", "Z^-½", "S^-1"): p += pqg.RZ(-np.pi, j)
 
                 # If the gate is an eighth turn (+/- 45 deg or pi/4) for X, Y or Z, apply the respective gate
-                elif current_gate in ("X^1/4", "X^¼"): p += pqg.RX(np.pi/4, j)
+                elif current_gate in ("X^1/4", "X^¼"): p += POS_FTRT_X(j)
                 elif current_gate in ("X^-1/4", "X^-¼"): p += pqg.RX(-np.pi/4, j)
                 elif current_gate in ("Y^1/4", "Y^¼"): p += pqg.RY(np.pi/2, j)
                 elif current_gate in ("Y^-1/4", "Y^-¼"): p += pqg.RY(-np.pi/2, j)
@@ -162,14 +164,19 @@ class calculate_circuit():
         global POS_FTRT_Y
         global NEG_FTRT_Y
         
-        pos_sqrt_x = np.array([[0.5+0.5j, 0.5-0.5j],
-                [0.5-0.5j, 0.5+0.5j]])
-        neg_sqrt_x = np.array([[0.5-0.5j, 0.5+0.5j],
-                [0.5+0.5j, 0.5-0.5j]])
-        pos_sqrt_y = np.array([[0.5+0.5j, -0.5-0.5j],
-                [0.5+0.5j, 0.5+0.5j]])
-        neg_sqrt_y = np.array([[0.5-0.5j, 0.5-0.5j],
-                [-0.5+0.5j, 0.5-0.5j]])
+        pos_sqrt_x = np.array([[0.5+0.5j, 0.5-0.5j], [0.5-0.5j, 0.5+0.5j]])
+        neg_sqrt_x = np.array([[0.5-0.5j, 0.5+0.5j], [0.5+0.5j, 0.5-0.5j]])
+        pos_sqrt_y = np.array([[0.5+0.5j, -0.5-0.5j], [0.5+0.5j, 0.5+0.5j]])
+        neg_sqrt_y = np.array([[0.5-0.5j, 0.5-0.5j], [-0.5+0.5j, 0.5-0.5j]])
+        p = 0.25
+        g = cmath.exp(-1j*p*np.pi/-2)
+        c = math.cos(p*np.pi/2)
+        s = math.sin(p*np.pi/2)
+        pos_ftrt_x = np.array([[g * c, -1j*g*s],[-1j*g*s, g*c]])
+        print(pos_ftrt_x)
+        neg_ftrt_x = np.array([[0.5-0.5j, 0.5+0.5j], [0.5+0.5j, 0.5-0.5j]])
+        pos_ftrt_y = np.array([[0.5+0.5j, -0.5-0.5j], [0.5+0.5j, 0.5+0.5j]])
+        neg_ftrt_y = np.array([[0.5-0.5j, 0.5-0.5j], [-0.5+0.5j, 0.5-0.5j]])
         '''
         ftrt_x = np.array([[]])
         ftrt_y = np.array([[]])
@@ -187,19 +194,21 @@ class calculate_circuit():
         neg_sqrt_x_def = DefGate("NEG-SQRT-X", neg_sqrt_x)
         pos_sqrt_y_def = DefGate("POS-SQRT-Y", pos_sqrt_y)
         neg_sqrt_y_def = DefGate("NEG-SQRT-Y", neg_sqrt_y)
+        
+        pos_ftrt_x_def = DefGate("POS-FTRT-X", pos_ftrt_x)
         '''
-        pos_ftrt_x_def = DefGate("POS-FTRT-X", ftrt_x)
-        neg_ftrt_x_def = DefGate("NEG-FTRT-X", -ftrt_x)
-        pos_ftrt_y_def = DefGate("POS-FTRT-Y", ftrt_y)
-        neg_ftrt_y_def = DefGate("NEG-FTRT-Y", -ftrt_y)
+        neg_ftrt_x_def = DefGate("NEG-FTRT-X", neg_ftrt_x)
+        pos_ftrt_y_def = DefGate("POS-FTRT-Y", pos_ftrt_y)
+        neg_ftrt_y_def = DefGate("NEG-FTRT-Y", neg_ftrt_y)
         '''
         # Get the gate constructor
         POS_SQRT_X = pos_sqrt_x_def.get_constructor()
         NEG_SQRT_X = neg_sqrt_x_def.get_constructor()
         POS_SQRT_Y = pos_sqrt_y_def.get_constructor()
         NEG_SQRT_Y = neg_sqrt_y_def.get_constructor()
-        '''
+        
         POS_FTRT_X = pos_ftrt_x_def.get_constructor()
+        '''
         NEG_FTRT_X = neg_ftrt_x_def.get_constructor()
         POS_FTRT_Y = pos_ftrt_y_def.get_constructor()
         NEG_FTRT_Y = neg_ftrt_y_def.get_constructor()
@@ -209,7 +218,7 @@ class calculate_circuit():
         qubit_program += neg_sqrt_x_def
         qubit_program += pos_sqrt_y_def
         qubit_program += neg_sqrt_y_def
-        
+        qubit_program += pos_ftrt_x_def
 
         return qubit_program
 
