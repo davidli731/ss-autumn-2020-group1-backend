@@ -34,12 +34,13 @@ class calculate_circuit():
         
         # Gets definitions for quarter & eighth turn gates
         p = self.define_extra_gates(p)
-        
+
         # get JSON, load the data from the string (convert to dictionary), assign to circuit
         try:
             circuit = json.loads(self.data["circuit_input"])
         except:
             circuit = self.data["circuit_input"]
+
         # length of circuit = number of columns
         col_length = len(circuit)
         num_qubits = 0
@@ -171,62 +172,34 @@ class calculate_circuit():
         g = lambda p: cmath.exp(-1j*p*np.pi/-2)
         c = lambda p: math.cos(p*np.pi/2)
         s = lambda p: math.sin(p*np.pi/2)
-        x_pow_gate = lambda p: np.array([[g(p)*c(p), -1j*g(p)*s(p)],[-1j*g(p)*s(p), g(p)*c(p)]])
-        y_pow_gate = lambda p: np.array([[g(p)*c(p), -g(p)*s(p)],[g(p)*s(p), g(p)*c(p)]])
+        x_pow_gate = lambda p: np.array([[g(p)*c(p), -1j*g(p)*s(p)], [-1j*g(p)*s(p), g(p)*c(p)]])
+        y_pow_gate = lambda p: np.array([[g(p)*c(p), -g(p)*s(p)], [g(p)*s(p), g(p)*c(p)]])
         z_pow_gate = lambda p: np.array([[1, 0],[0, g(p)]])
 
-        '''
-        additional_gates = {'POS-SQRT-X': sqrt_x, 'NEG-SQRT-X': -sqrt_x}
+        dims = ['X', 'Y', 'Z']
+        powers = {"POS-SQRT": 0.5, "NEG-SQRT": -0.5, "POS-FTRT": 0.25, "NEG-FTRT": -0.25}
         constructors = {}
-        for gate in additional_gates:
-            gate_def = DefGate(gate, additional_gates[gate])
-            constructors[gate] = (gate_def.get_constructor())
-            qubit_program += gate_def
-        '''
-        # Get the Quil definition for the new gate
-        pos_sqrt_x_def = DefGate("POS-SQRT-X", x_pow_gate(0.5))
-        neg_sqrt_x_def = DefGate("NEG-SQRT-X", x_pow_gate(-0.5))
-        pos_sqrt_y_def = DefGate("POS-SQRT-Y", y_pow_gate(0.5))
-        neg_sqrt_y_def = DefGate("NEG-SQRT-Y", y_pow_gate(-0.5))
-        pos_sqrt_z_def = DefGate("POS-SQRT-Z", z_pow_gate(0.5))
-        neg_sqrt_z_def = DefGate("NEG-SQRT-Z", z_pow_gate(-0.5))
-
-        pos_ftrt_x_def = DefGate("POS-FTRT-X", x_pow_gate(0.25))
-        neg_ftrt_x_def = DefGate("NEG-FTRT-X", x_pow_gate(-0.25))
-        pos_ftrt_y_def = DefGate("POS-FTRT-Y", y_pow_gate(0.25))
-        neg_ftrt_y_def = DefGate("NEG-FTRT-Y", y_pow_gate(-0.25))
-        pos_ftrt_z_def = DefGate("POS-FTRT-Z", z_pow_gate(0.25))
-        neg_ftrt_z_def = DefGate("NEG-FTRT-Z", z_pow_gate(-0.25))
+        for dim in dims:
+            for power in powers:
+                gate_name = power + "-" + dim
+                if dim in 'X': matrix = x_pow_gate(powers[power])
+                elif dim in 'Y': matrix = y_pow_gate(powers[power])
+                else: matrix = z_pow_gate(powers[power])
+                # Get the Quil definition for the new gate
+                gate_def = DefGate(gate_name, matrix)
+                # Get the gate constructor
+                constructors[gate_name] = gate_def.get_constructor()
+                # Then we can use the new gate
+                qubit_program += gate_def
         
-        # Get the gate constructor
-        POS_SQRT_X = pos_sqrt_x_def.get_constructor()
-        NEG_SQRT_X = neg_sqrt_x_def.get_constructor()
-        POS_SQRT_Y = pos_sqrt_y_def.get_constructor()
-        NEG_SQRT_Y = neg_sqrt_y_def.get_constructor()
-        POS_SQRT_Z = pos_sqrt_z_def.get_constructor()
-        NEG_SQRT_Z = neg_sqrt_z_def.get_constructor()
+        # Assign gate constructurs
+        POS_SQRT_X, NEG_SQRT_X = constructors["POS-SQRT-X"], constructors["NEG-SQRT-X"]
+        POS_SQRT_Y, NEG_SQRT_Y = constructors["POS-SQRT-Y"], constructors["NEG-SQRT-Y"]
+        POS_SQRT_Z, NEG_SQRT_Z = constructors["POS-SQRT-Z"], constructors["NEG-SQRT-Z"]
 
-        POS_FTRT_X = pos_ftrt_x_def.get_constructor()
-        NEG_FTRT_X = neg_ftrt_x_def.get_constructor()
-        POS_FTRT_Y = pos_ftrt_y_def.get_constructor()
-        NEG_FTRT_Y = neg_ftrt_y_def.get_constructor()
-        POS_FTRT_Z = pos_ftrt_z_def.get_constructor()
-        NEG_FTRT_Z = neg_ftrt_z_def.get_constructor()
-
-        # Then we can use the new gate
-        qubit_program += pos_sqrt_x_def
-        qubit_program += neg_sqrt_x_def
-        qubit_program += pos_sqrt_y_def
-        qubit_program += neg_sqrt_y_def
-        qubit_program += pos_sqrt_z_def
-        qubit_program += neg_sqrt_z_def
-
-        qubit_program += pos_ftrt_x_def
-        qubit_program += neg_ftrt_x_def
-        qubit_program += pos_ftrt_y_def
-        qubit_program += neg_ftrt_y_def
-        qubit_program += pos_ftrt_z_def
-        qubit_program += neg_ftrt_z_def
+        POS_FTRT_X, NEG_FTRT_X = constructors["POS-FTRT-X"], constructors["NEG-FTRT-X"]
+        POS_FTRT_Y, NEG_FTRT_Y = constructors["POS-FTRT-Y"], constructors["NEG-FTRT-Y"]
+        POS_FTRT_Z, NEG_FTRT_Z = constructors["POS-FTRT-Z"], constructors["NEG-FTRT-Z"]
 
         return qubit_program
 
