@@ -146,21 +146,29 @@ class calculate_circuit():
         i = 0
         for item in prob_dict:
             struct = {}
-            # The integer value of the qubit state
+            # Integer value of the qubit state
             struct["int"] = "{:.0f}".format(int(item, 2))
-            # The complex number representing the qubit state
+            # Complex number representing the qubit state
             struct["val"] = "{:.5f}".format((round(amp_arr[i], 5))).strip("()")
-            # The probability of obtaining the qubit state
+            # Probability of obtaining the qubit state
             struct["prob"] = "{:.5f}".format(round(prob_dict[item], 5))
-            # The magnitude of the qubit state
+            # Magnitude of the qubit state
             struct["mag"] = "{:.5f}".format(round(abs(amp_arr[i]), 5))
-            # The phase of the qubit state (obtained by measuring phase of the complex number and converting to degrees)
-            struct["phase"] = "{:.5f}".format(round(np.degrees(cmath.phase(amp_arr[i])), 5))
+            # Phase of the qubit state (obtained by measuring complex number phase, converting to °)
+            struct["phase"] = self.format_phase(amp_arr[i])
             results_dict[item] = struct
             i = i + 1
         return results_dict
 
+    def format_phase(self, amp):
+        # If the phase is +ve, add a positive sign to string formatting
+        sign = ""
+        degrees = np.degrees(cmath.phase(amp))
+        if degrees >= 0: sign = "+"
+        return sign + "{:.2f}".format(round(degrees, 2)) + "°"
+
     def define_extra_gates(self, qubit_program):
+        # Gates to be used in calculate method
         global POS_SQRT_X, NEG_SQRT_X
         global POS_SQRT_Y, NEG_SQRT_Y
         global POS_SQRT_Z, NEG_SQRT_Z
@@ -176,12 +184,14 @@ class calculate_circuit():
         y_pow_gate = lambda p: np.array([[g(p)*c(p), -g(p)*s(p)], [g(p)*s(p), g(p)*c(p)]])
         z_pow_gate = lambda p: np.array([[1, 0],[0, g(p)]])
 
+        # Definition of the different dimensions and powers, all combinations
         dims = ['X', 'Y', 'Z']
         powers = {"POS-SQRT": 0.5, "NEG-SQRT": -0.5, "POS-FTRT": 0.25, "NEG-FTRT": -0.25}
         constructors = {}
         for dim in dims:
             for power in powers:
                 gate_name = power + "-" + dim
+                # Get the unitary matrix for that dimension to the specific power
                 if dim in 'X': matrix = x_pow_gate(powers[power])
                 elif dim in 'Y': matrix = y_pow_gate(powers[power])
                 else: matrix = z_pow_gate(powers[power])
