@@ -131,7 +131,10 @@ class calculate_circuit():
                         elif len(special_loc) == 3: p += pqg.CCNOT(special_loc[2], special_loc[1], special_loc[0])
                         special_loc = []
                         special_gate_type = "NULL"
-                    
+
+                # If there is no gate, apply the I gate to include potentially empty qubit wire
+                else: p += pqg.I(j)
+
         results = self.construct_results_dict(p)
 
         return results
@@ -174,7 +177,7 @@ class calculate_circuit():
         s = lambda p: math.sin(p*np.pi/2)
         x_pow_gate = lambda p: np.array([[g(p)*c(p), -1j*g(p)*s(p)], [-1j*g(p)*s(p), g(p)*c(p)]])
         y_pow_gate = lambda p: np.array([[g(p)*c(p), -g(p)*s(p)], [g(p)*s(p), g(p)*c(p)]])
-        z_pow_gate = lambda p: np.array([[1, 0],[0, g(p)]])
+        z_pow_gate = lambda p: np.array([[1, 0],[0, g(2*p)]])
 
         # Definition of the different dimensions and powers, all combinations
         dims = ['X', 'Y', 'Z']
