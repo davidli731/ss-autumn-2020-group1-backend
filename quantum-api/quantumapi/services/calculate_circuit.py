@@ -2,7 +2,6 @@ import numpy as np
 import math
 import cmath
 import json
-import pyquil
 from pyquil import Program
 from pyquil.quil import DefGate
 import pyquil.gates as pqg
@@ -149,23 +148,16 @@ class calculate_circuit():
             # Integer value of the qubit state
             struct["int"] = "{:.0f}".format(int(item, 2))
             # Complex number representing the qubit state
-            struct["val"] = "{:.5f}".format((round(amp_arr[i], 5))).strip("()")
+            struct["val"] = "{:+.5f}".format(amp_arr[i]).strip("()")
             # Probability of obtaining the qubit state
-            struct["prob"] = "{:.5f}".format(round(prob_dict[item], 5))
+            struct["prob"] = "{:.5f}".format(prob_dict[item])
             # Magnitude of the qubit state
-            struct["mag"] = "{:.5f}".format(round(abs(amp_arr[i]), 5))
+            struct["mag"] = "{:.5f}".format(abs(amp_arr[i]))
             # Phase of the qubit state (obtained by measuring complex number phase, converting to °)
-            struct["phase"] = self.format_phase(amp_arr[i])
+            struct["phase"] = "{:+.2f}".format(np.degrees(cmath.phase(amp_arr[i]))) + "°"
             results_dict[item] = struct
             i = i + 1
         return results_dict
-
-    def format_phase(self, amp):
-        # If the phase is +ve, add a positive sign to string formatting
-        sign = ""
-        degrees = np.degrees(cmath.phase(amp))
-        if degrees >= 0: sign = "+"
-        return sign + "{:.2f}".format(round(degrees, 2)) + "°"
 
     def define_extra_gates(self, qubit_program):
         # Gates to be used in calculate method
