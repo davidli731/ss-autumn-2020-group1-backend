@@ -171,4 +171,37 @@ def submit_circuit():
         db.session.rollback()
 
         return jsonify({ 'message': e.args })
+
+# Retrieve all circuits or based on studentid found in payload
+@api.route('/retrieve-circuits', methods=('GET',))
+def retrieve_circuits():
+    data = request.get_json()
+    try:
+        if data['student_id'] == 'all':
+            all_circuits = db.session.execute('SELECT * FROM circuits')
+            return jsonify({ 'circuits': to_dict(all_circuits)}), 200
+        else:
+            all_circuits = db.session.execute('SELECT * FROM circuits where student_id = :val', {'val': data['student_id']})
+           
+            if all_circuits != None:
+                return jsonify({ 'circuits': to_dict(all_circuits)}), 200
+            else:
+                return jsonify({'message': 'Student not found'}), 400
+                
+        
+    except exc.SQLAlchemyError as e:
+        db.session.rollback()
+
+        return jsonify({ 'message': e.args })
+
+#converts a resultproxy object type to dict
+def to_dict(resultproxy):
+    d, a = {}, []
+    for rowproxy in resultproxy:
+        # rowproxy.items() returns an array like [(key0, value0), (key1, value1)]
+        for column, value in rowproxy.items():
+            # build up the dictionary
+            d = {**d, **{column: value}}
+        a.append(d)
+    return a
         
