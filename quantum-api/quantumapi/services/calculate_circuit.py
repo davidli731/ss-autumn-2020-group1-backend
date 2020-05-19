@@ -52,7 +52,9 @@ class calculate_circuit():
             # Keeps track of where special components are (i.e. SWAP)
             special_loc = []
             # Obtains any controls in the column i; if present, each gate is made into a controlled gate, else the gate is normal
-            control_qubits = self.get_controls_in_column(i)
+            control_qubits, anticontrol_qubits = self.get_controls_in_column(i)
+            # To apply anticontrols, X gate needs to be applied to the corresponding qubit wire and applied again after column is processed
+            for qubit in anticontrol_qubits: p += pqg.X(qubit)
 
             for j in range(len(self.circuit[i])):
                 current_gate = str(self.circuit[i][j]).upper()
@@ -88,17 +90,23 @@ class calculate_circuit():
                     else:
                         special_loc.append(j)
 
+                else: p += pqg.I(j)
+            
+            # Reverses the process used to make anticontrols possible
+            for qubit in anticontrol_qubits: p += pqg.X(qubit)
+
         self.construct_results_dict(p)
 
         return self.results
 
     def get_controls_in_column(self, circuit_col):
         control_qubits = []
+        anticontrol_qubits = []
         for index, qubit in enumerate(self.circuit[circuit_col]):
-            if qubit in "•":
-                control_qubits.append(index)
-        return control_qubits
-     
+            if qubit in ("•", "◦"): control_qubits.append(index)
+            if qubit in "◦": anticontrol_qubits.append(index)
+        return control_qubits, anticontrol_qubits
+
     def construct_results_dict(self, qubit_program):
         wf_sim = WavefunctionSimulator()
         wavefunction = wf_sim.wavefunction(qubit_program)
