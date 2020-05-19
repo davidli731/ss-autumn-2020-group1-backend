@@ -122,7 +122,8 @@ def delete_circuit():
         to_delete_circuit = Circuit.query.filter_by(circuit_name=data['circuit_name']).filter_by(student_id=data['student_id']).first()
 
         if to_delete_circuit:
-            db.session.delete(to_delete_circuit)
+            #db.session.delete(to_delete_circuit)
+            to_delete_circuit.is_deleted = True
             db.session.commit()
             return jsonify({ 'message': "Circuit found and deleted"}), 200
         else:
