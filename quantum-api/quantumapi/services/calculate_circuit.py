@@ -25,7 +25,13 @@ class calculate_circuit():
     NEG_FTRT_Z = 0
 
     def __init__(self, data):
-        self.data = data
+        # get JSON, load the data from the string (convert to dictionary), assign to circuit
+        try:
+            circuit = json.loads(data["circuit_input"])
+        except:
+            circuit = data["circuit_input"]
+        self.circuit = circuit
+        self.results = {}
 
     def calculate(self):
 
@@ -34,110 +40,64 @@ class calculate_circuit():
         # Gets definitions for quarter & eighth turn gates
         p = self.define_extra_gates(p)
 
-        # get JSON, load the data from the string (convert to dictionary), assign to circuit
-        try:
-            circuit = json.loads(self.data["circuit_input"])
-        except:
-            circuit = self.data["circuit_input"]
-
         # length of circuit = number of columns
-        col_length = len(circuit)
+        col_length = len(self.circuit)
         num_qubits = 0
         # max length of any number of operations per column = number of qubits / rows used
-        for i in circuit:
+        for i in self.circuit:
             if len(i) > num_qubits: num_qubits = len(i)
+        
         # loops over each gate in circuit and applies the gate
         for i in range(col_length):
-            # stores what type of special gate it is (CNOT, CCNOT, CZ, etc)
-            special_gate_type = "NULL"
-            # keeps track of where special components are (i.e. controls, or SWAP)
+            # Keeps track of where special components are (i.e. SWAP)
             special_loc = []
+            # Obtains any controls in the column i; if present, each gate is made into a controlled gate, else the gate is normal
+            control_qubits = self.get_controls_in_column(i)
 
-            for j in range(len(circuit[i])):
-                current_gate = str(circuit[i][j]).upper()
+            for j in range(len(self.circuit[i])):
+                current_gate = str(self.circuit[i][j]).upper()
 
                 # If the gate is X, Y, Z or H, apply the gate to qubit #j
-                if current_gate in "H": p += pqg.H(j)
-                elif current_gate in "X": p += pqg.X(j)
-                elif current_gate in "Y": p += pqg.Y(j)
-                elif current_gate in "Z": p += pqg.Z(j)
+                if current_gate in "H": p += pqg.H(j).controlled(control_qubits)
+                elif current_gate in "X": p += pqg.X(j).controlled(control_qubits)
+                elif current_gate in "Y": p += pqg.Y(j).controlled(control_qubits)
+                elif current_gate in "Z": p += pqg.Z(j).controlled(control_qubits)
                
                 # If the gate is a quarter turn (+/- 90 deg or pi/2) for X, Y or Z, apply the respective gate
-                elif current_gate in ("X^1/2", "X^½"): p += POS_SQRT_X(j)
-                elif current_gate in ('X^-1/2', 'X^-½'): p += NEG_SQRT_X(j)
-                elif current_gate in ("Y^1/2", "Y^½"): p += POS_SQRT_Y(j)
-                elif current_gate in ("Y^-1/2", "Y^-½"): p += NEG_SQRT_Y(j)
-                elif current_gate in ("Z^1/2", "Z^½", "S"): p += POS_SQRT_Z(j)
-                elif current_gate in ("Z^-1/2", "Z^-½", "S^-1"): p += NEG_SQRT_Z(j)
+                elif current_gate in ("X^1/2", "X^½"): p += POS_SQRT_X(j).controlled(control_qubits)
+                elif current_gate in ('X^-1/2', 'X^-½'): p += NEG_SQRT_X(j).controlled(control_qubits)
+                elif current_gate in ("Y^1/2", "Y^½"): p += POS_SQRT_Y(j).controlled(control_qubits)
+                elif current_gate in ("Y^-1/2", "Y^-½"): p += NEG_SQRT_Y(j).controlled(control_qubits)
+                elif current_gate in ("Z^1/2", "Z^½", "S"): p += POS_SQRT_Z(j).controlled(control_qubits)
+                elif current_gate in ("Z^-1/2", "Z^-½", "S^-1"): p += NEG_SQRT_Z(j).controlled(control_qubits)
 
                 # If the gate is an eighth turn (+/- 45 deg or pi/4) for X, Y or Z, apply the respective gate
-                elif current_gate in ("X^1/4", "X^¼"): p += POS_FTRT_X(j)
-                elif current_gate in ("X^-1/4", "X^-¼"): p += NEG_FTRT_X(j)
-                elif current_gate in ("Y^1/4", "Y^¼"): p += POS_FTRT_Y(j)
-                elif current_gate in ("Y^-1/4", "Y^-¼"): p += NEG_FTRT_Y(j)
-                elif current_gate in ("Z^1/4", "Z^¼", "T"): p += POS_FTRT_Z(j)
-                elif current_gate in ("Z^-1/4", "Z^-¼", "T^-1"): p += NEG_FTRT_Z(j)
+                elif current_gate in ("X^1/4", "X^¼"): p += POS_FTRT_X(j).controlled(control_qubits)
+                elif current_gate in ("X^-1/4", "X^-¼"): p += NEG_FTRT_X(j).controlled(control_qubits)
+                elif current_gate in ("Y^1/4", "Y^¼"): p += POS_FTRT_Y(j).controlled(control_qubits)
+                elif current_gate in ("Y^-1/4", "Y^-¼"): p += NEG_FTRT_Y(j).controlled(control_qubits)
+                elif current_gate in ("Z^1/4", "Z^¼", "T"): p += POS_FTRT_Z(j).controlled(control_qubits)
+                elif current_gate in ("Z^-1/4", "Z^-¼", "T^-1"): p += NEG_FTRT_Z(j).controlled(control_qubits)
         
                 # If the gate is a SWAP gate, check if another one has been found before and perform the SWAP operation
                 # If not, keep track of its location until we find the other SWAP gate
                 elif current_gate in "SWAP":
                     if len(special_loc) == 1:
-                        p += pqg.SWAP(special_loc[0], j)
+                        p += pqg.SWAP(special_loc[0], j).controlled(control_qubits)
                         special_loc = []
                     else:
                         special_loc.append(j)
 
-                # If the gate is a CNOT gate, insert its pos into the list of special components at index 0 (the front)
-                # If, after inserting the pos, the length of the special list is 2 (i.e. a control has already been found, and is at index 1)
-                # perform the operation, clear the special list and the special gate type, else indicate that we have a special gate that's missing parts
-                elif current_gate in "CNOT":
-                    special_loc.insert(0, j)
-                    if len(special_loc) == 2:
-                        p += pqg.CNOT(special_loc[1], special_loc[0])
-                        special_loc = []
-                    else:
-                        special_gate_type = "CNOT"
+        self.construct_results_dict(p)
 
-                # If the gate is a CCNOT gate, insert its pos into the list of special components at index 0 (the front)
-                # If, after inserting the pos, the length of the special list is 3 (i.e. 2 controls has already been found, at index 1 & 2)
-                # perform the operation, clear the special list and the special gate type, else indicate that we have a special gate that's missing parts
-                elif current_gate in "CCNOT":
-                    special_loc.insert(0, j)
-                    if len(special_loc) == 3:
-                        p += pqg.CCNOT(special_loc[2], special_loc[1], special_loc[0])
-                        special_loc = []
-                    else:
-                        special_gate_type = "CCNOT"
+        return self.results
 
-                # If the gate is a CZ gate, insert its pos into the list of special components at index 0 (the front)
-                # If, after inserting the pos, the length of the special list is 2 (i.e. a control has already been found, and is at index 1)
-                # perform the operation, clear the special list and the special gate type, else indicate that we have a special gate that's missing parts
-                elif current_gate in "CZ":
-                    special_loc.insert(0, j)
-                    if len(special_loc) == 2:
-                        p += pqg.CZ(special_loc[1], special_loc[0])
-                        special_loc = []
-                    else:
-                        special_gate_type = "CZ"
-
-                # If a control is found, add it to the list of special components
-                # If we have found a special gate and the required amount of controls, perform the operation & clear the special list and the special gate type
-                elif current_gate in "•":
-                    special_loc.append(j)
-                    if special_gate_type not in "NULL":
-                        if len(special_loc) == 2:
-                            if special_gate_type in "CNOT": p += pqg.CNOT(special_loc[1], special_loc[0])
-                            elif special_gate_type in "CZ": p += pqg.CZ(special_loc[1], special_loc[0])
-                        elif len(special_loc) == 3: p += pqg.CCNOT(special_loc[2], special_loc[1], special_loc[0])
-                        special_loc = []
-                        special_gate_type = "NULL"
-
-                # If there is no gate, apply the I gate to include potentially empty qubit wire
-                else: p += pqg.I(j)
-
-        results = self.construct_results_dict(p)
-
-        return results
+    def get_controls_in_column(self, circuit_col):
+        control_qubits = []
+        for index, qubit in enumerate(self.circuit[circuit_col]):
+            if qubit in "•":
+                control_qubits.append(index)
+        return control_qubits
      
     def construct_results_dict(self, qubit_program):
         wf_sim = WavefunctionSimulator()
@@ -160,7 +120,7 @@ class calculate_circuit():
             struct["phase"] = "{:+.2f}".format(np.degrees(cmath.phase(amp_arr[i]))) + "°"
             results_dict[item] = struct
             i = i + 1
-        return results_dict
+        self.results = results_dict
 
     def define_extra_gates(self, qubit_program):
         # Gates to be used in calculate method
