@@ -46,7 +46,8 @@ def login():
         'iat':str(datetime.utcnow()),
         'exp': str(datetime.utcnow() + timedelta(minutes=30))},
         current_app.config['SECRET_KEY'])
-    return jsonify({ 'token': token.decode('UTF-8') })
+    student_id = User.query.filter_by(email=data['email']).first().student_id
+    return jsonify({ 'student_id': student_id ,'token': token.decode('UTF-8') })
 
 
 # This is a decorator function which will be used to protect authentication-sensitive API endpoints
@@ -107,7 +108,7 @@ def save_circuit():
         db.session.commit()
         db.session.close()
 
-        return jsonify({ 'message': "circuit saved successfully" })
+        return jsonify({ 'message': "Circuit saved successfully" })
     except exc.SQLAlchemyError as e:
         db.session.rollback()
 
@@ -122,7 +123,8 @@ def delete_circuit():
         to_delete_circuit = Circuit.query.filter_by(circuit_name=data['circuit_name']).filter_by(student_id=data['student_id']).first()
 
         if to_delete_circuit:
-            db.session.delete(to_delete_circuit)
+            #db.session.delete(to_delete_circuit)
+            to_delete_circuit.is_deleted = True
             db.session.commit()
             return jsonify({ 'message': "Circuit found and deleted"}), 200
         else:
@@ -135,6 +137,7 @@ def delete_circuit():
 
 # Update circuit grade and flag is_graded = True based on student_id, circuit name and grade found in payload
 @api.route('/grade-circuit', methods=('POST',))
+@cross_origin()
 def grade_circuit():
     try:
         data = request.get_json()
@@ -155,6 +158,7 @@ def grade_circuit():
         
 # Update circuit flag is_submitted = True based on student_id and circuit name found in payload
 @api.route('/submit-circuit', methods=('POST',))
+@cross_origin()
 def submit_circuit():
     try:
         data = request.get_json()
@@ -171,4 +175,69 @@ def submit_circuit():
         db.session.rollback()
 
         return jsonify({ 'message': e.args })
+
+# Retrieve all circuits or based on studentid found in payload
+@api.route('/retrieve-circuits', methods=('GET',))
+@cross_origin()
+def retrieve_circuits():
+    try:
+        data = request.get_json()
+    
+        #Check for valid keys, return 400 bad request if invlaid key is found
+        for key in data:
+            if hasattr(Circuit, key):
+                valid_attributes = 1
+            else:
+                valid_attributes = 0
+                break
+            
+    
+        #Continue only if valid attributes exist, thorw 400 bad request if not
+        if valid_attributes:
+            query = ['SELECT * FROM circuits where ']
+            counter = 1
+            for key in data:
+                query.append(key + " = '"  + str(data[key]) + "'")
+                if counter < len(data):
+                    query.append(' AND ') 
+                    counter += 1
+                query_final = ''.join(query)
+                    
+            #check if student_id attr is included in payload. 
+            if data.get("student_id"):
+                
+                #If student id is set to "all", return all circuits in the db
+                if data['student_id'] == 'all':
+                    all_circuits = db.session.execute('SELECT * FROM circuits')
+                    return jsonify({ 'circuits': to_dict(all_circuits)}), 200
+                    
+                    #For all other cases, use the dynamically build query    
+                else:
+                    all_circuits = db.session.execute(query_final)                    
+                    return jsonify({ 'circuits': to_dict(all_circuits)}), 200
+            
+            #Catches payloads missing student_id           
+            else:
+                all_circuits = db.session.execute(query_final)
+                return jsonify({ 'circuits': to_dict(all_circuits)}), 200
+
+        else:
+            return jsonify({'message': 'Invalid atrributes.'}), 400
+    
+    except exc.SQLAlchemyError as e:
+        db.session.rollback()
+        
+        return jsonify({ 'message': e.args })
+
+#converts a resultproxy object type to dict
+def to_dict(resultproxy):
+    d, a = {}, []
+    for rowproxy in resultproxy:
+        # rowproxy.items() returns an array like [(key0, value0), (key1, value1)]
+        for column, value in rowproxy.items():
+            # build up the dictionary
+            d = {**d, **{column: value}}
+        a.append(d)
+    return a
+    
         
