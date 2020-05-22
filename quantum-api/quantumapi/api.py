@@ -108,7 +108,7 @@ def save_circuit():
         db.session.commit()
         db.session.close()
 
-        return jsonify({ 'message': "circuit saved successfully" })
+        return jsonify({ 'message': "Circuit saved successfully" })
     except exc.SQLAlchemyError as e:
         db.session.rollback()
 
@@ -137,6 +137,7 @@ def delete_circuit():
 
 # Update circuit grade and flag is_graded = True based on student_id, circuit name and grade found in payload
 @api.route('/grade-circuit', methods=('POST',))
+@cross_origin()
 def grade_circuit():
     try:
         data = request.get_json()
@@ -157,6 +158,7 @@ def grade_circuit():
         
 # Update circuit flag is_submitted = True based on student_id and circuit name found in payload
 @api.route('/submit-circuit', methods=('POST',))
+@cross_origin()
 def submit_circuit():
     try:
         data = request.get_json()
@@ -176,24 +178,55 @@ def submit_circuit():
 
 # Retrieve all circuits or based on studentid found in payload
 @api.route('/retrieve-circuits', methods=('GET',))
+@cross_origin()
 def retrieve_circuits():
-    data = request.get_json()
     try:
-        if data['student_id'] == 'all':
-            all_circuits = db.session.execute('SELECT * FROM circuits')
-            return jsonify({ 'circuits': to_dict(all_circuits)}), 200
-        else:
-            all_circuits = db.session.execute('SELECT * FROM circuits where student_id = :val', {'val': data['student_id']})
-           
-            if all_circuits != None:
-                return jsonify({ 'circuits': to_dict(all_circuits)}), 200
+        data = request.get_json()
+    
+        #Check for valid keys, return 400 bad request if invlaid key is found
+        for key in data:
+            if hasattr(Circuit, key):
+                valid_attributes = 1
             else:
-                return jsonify({'message': 'Student not found'}), 400
+                valid_attributes = 0
+                break
+            
+    
+        #Continue only if valid attributes exist, thorw 400 bad request if not
+        if valid_attributes:
+            query = ['SELECT * FROM circuits where ']
+            counter = 1
+            for key in data:
+                query.append(key + " = '"  + str(data[key]) + "'")
+                if counter < len(data):
+                    query.append(' AND ') 
+                    counter += 1
+                query_final = ''.join(query)
+                    
+            #check if student_id attr is included in payload. 
+            if data.get("student_id"):
                 
-        
+                #If student id is set to "all", return all circuits in the db
+                if data['student_id'] == 'all':
+                    all_circuits = db.session.execute('SELECT * FROM circuits')
+                    return jsonify({ 'circuits': to_dict(all_circuits)}), 200
+                    
+                    #For all other cases, use the dynamically build query    
+                else:
+                    all_circuits = db.session.execute(query_final)                    
+                    return jsonify({ 'circuits': to_dict(all_circuits)}), 200
+            
+            #Catches payloads missing student_id           
+            else:
+                all_circuits = db.session.execute(query_final)
+                return jsonify({ 'circuits': to_dict(all_circuits)}), 200
+
+        else:
+            return jsonify({'message': 'Invalid atrributes.'}), 400
+    
     except exc.SQLAlchemyError as e:
         db.session.rollback()
-
+        
         return jsonify({ 'message': e.args })
 
 #converts a resultproxy object type to dict
@@ -206,4 +239,5 @@ def to_dict(resultproxy):
             d = {**d, **{column: value}}
         a.append(d)
     return a
+    
         
