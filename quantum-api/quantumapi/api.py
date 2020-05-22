@@ -108,7 +108,7 @@ def save_circuit():
         db.session.commit()
         db.session.close()
 
-        return jsonify({ 'message': "Circuit saved successfully" }), 200
+        return jsonify({ 'message': "Circuit saved successfully" }), 201
     except exc.SQLAlchemyError as e:
         db.session.rollback()
 
