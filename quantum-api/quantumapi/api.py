@@ -177,7 +177,7 @@ def submit_circuit():
         return jsonify({ 'message': e.args }), 500
 
 # Retrieve all circuits or based on studentid found in payload
-@api.route('/retrieve-circuits', methods=('GET',))
+@api.route('/retrieve-circuits', methods=('POST',))
 @cross_origin()
 def retrieve_circuits():
     try:
