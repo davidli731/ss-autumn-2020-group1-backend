@@ -18,7 +18,7 @@ api = Blueprint('api', __name__)
 @api.route('/')
 def index():
     response = { 'Status': "API is up and running!" }
-    return make_response(jsonify(response),200)
+    return make_response(jsonify(response), 200)
 
 
 @api.route('/register', methods=('POST',))
@@ -44,7 +44,7 @@ def login():
         'exp': str(datetime.utcnow() + timedelta(minutes=30))},
         current_app.config['SECRET_KEY'])
     student_id = User.query.filter_by(email=data['email']).first().student_id
-    return jsonify({ 'student_id': student_id ,'token': token.decode('UTF-8') })
+    return jsonify({ 'student_id': student_id ,'token': token.decode('UTF-8') }), 200
 
 
 # This is a decorator function which will be used to protect authentication-sensitive API endpoints
@@ -88,9 +88,9 @@ def calculate():
         data = request.json
         engine = calculate_circuit(data)
         circuit_output = engine.calculate()
-        return jsonify(circuit_output)
+        return jsonify(circuit_output), 200
     except Exception as e:
-        return jsonify({ 'message': e.args })
+        return jsonify({ 'message': e.args }), 400
 
 
 # Fetch student_id, circuit name and circuit JSON from payload and save to DB
@@ -103,11 +103,11 @@ def save_circuit():
         db.session.commit()
         db.session.close()
 
-        return jsonify({ 'message': "Circuit saved successfully" })
+        return jsonify({ 'message': "Circuit saved successfully" }), 201
     except exc.SQLAlchemyError as e:
         db.session.rollback()
 
-        return jsonify({ 'message': e.args })
+        return jsonify({ 'message': e.args }), 500
         
 # Delete circuit based on student_id and circuit name found in payload
 @api.route('/delete-circuit', methods=('POST',))
@@ -127,7 +127,7 @@ def delete_circuit():
     except exc.SQLAlchemyError as e:
         db.session.rollback()
 
-        return jsonify({ 'message': e.args })
+        return jsonify({ 'message': e.args }), 500
 
 # Update circuit grade and flag is_graded = True based on student_id, circuit name and grade found in payload
 @api.route('/grade-circuit', methods=('POST',))
@@ -148,7 +148,7 @@ def grade_circuit():
     except exc.SQLAlchemyError as e:
         db.session.rollback()
 
-        return jsonify({ 'message': e.args })
+        return jsonify({ 'message': e.args }), 500
         
 # Update circuit flag is_submitted = True based on student_id and circuit name found in payload
 @api.route('/submit-circuit', methods=('POST',))
@@ -168,10 +168,10 @@ def submit_circuit():
     except exc.SQLAlchemyError as e:
         db.session.rollback()
 
-        return jsonify({ 'message': e.args })
+        return jsonify({ 'message': e.args }), 500
 
 # Retrieve all circuits or based on studentid found in payload
-@api.route('/retrieve-circuits', methods=('GET',))
+@api.route('/retrieve-circuits', methods=('POST',))
 @cross_origin()
 def retrieve_circuits():
     try:
@@ -221,7 +221,7 @@ def retrieve_circuits():
     except exc.SQLAlchemyError as e:
         db.session.rollback()
         
-        return jsonify({ 'message': e.args })
+        return jsonify({ 'message': e.args }), 500
 
 #converts a resultproxy object type to dict
 def to_dict(resultproxy):
