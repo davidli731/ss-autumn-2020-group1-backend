@@ -1,7 +1,11 @@
-import numpy as np
+'''
+calculate_circuit.py
+- provides object to take in quantum circuit (JSON) and return list of results
+'''
 import math
 import cmath
 import json
+import numpy as np
 from pyquil import Program
 from pyquil.quil import DefGate
 import pyquil.gates as pqg
@@ -9,7 +13,7 @@ from pyquil.api import WavefunctionSimulator
 
 
 class calculate_circuit():
-    
+    '''Intakes a quantum circuit and return results'''
     POS_SQRT_X = 0
     NEG_SQRT_X = 0
     POS_SQRT_Y = 0
@@ -34,9 +38,9 @@ class calculate_circuit():
         self.results = {}
 
     def calculate(self):
-
+        '''Processes the quantum circuit and returns the results'''
         p = Program()
-        
+
         # Gets definitions for quarter & eighth turn gates
         p = self.define_extra_gates(p)
 
@@ -46,13 +50,15 @@ class calculate_circuit():
         # max length of any number of operations per column = number of qubits / rows used
         for i in self.circuit:
             if len(i) > num_qubits: num_qubits = len(i)
-        
+
         # loops over each gate in circuit and applies the gate
         for i in range(col_length):
             # Keeps track of where special components are (i.e. SWAP)
             special_loc = []
             # Obtains any controls in the column i; if present, each gate is made into a controlled gate, else the gate is normal
-            control_qubits = self.get_controls_in_column(i)
+            control_qubits, anticontrol_qubits = self.get_controls_in_column(i)
+            # To apply anticontrols, X gate needs to be applied to the corresponding qubit wire and applied again after column is processed
+            for qubit in anticontrol_qubits: p += pqg.X(qubit)
 
             for j in range(len(self.circuit[i])):
                 current_gate = str(self.circuit[i][j]).upper()
@@ -88,41 +94,49 @@ class calculate_circuit():
                     else:
                         special_loc.append(j)
 
+                else: p += pqg.I(j)
+            
+            # Reverses the process used to make anticontrols possible
+            for qubit in anticontrol_qubits: p += pqg.X(qubit)
+
         self.construct_results_dict(p)
 
         return self.results
 
     def get_controls_in_column(self, circuit_col):
+        '''Processes specific column, obtaining controls/anticontrols, and returning location'''
         control_qubits = []
+        anticontrol_qubits = []
         for index, qubit in enumerate(self.circuit[circuit_col]):
-            if qubit in "•":
-                control_qubits.append(index)
-        return control_qubits
-     
+            if qubit in ("•", "◦"): control_qubits.append(index)
+            # List for anticontrol qubits required because of additional requirements to work
+            if qubit in "◦": anticontrol_qubits.append(index)
+        return control_qubits, anticontrol_qubits
+
     def construct_results_dict(self, qubit_program):
+        ''' Constructs results dictionary of the evaluated quantum circuit '''
         wf_sim = WavefunctionSimulator()
         wavefunction = wf_sim.wavefunction(qubit_program)
         amp_arr = wavefunction.amplitudes
         prob_dict = wavefunction.get_outcome_probs()
         results_dict = {}
-        i = 0
-        for item in prob_dict:
+        for index, item in enumerate(prob_dict):
             struct = {}
             # Integer value of the qubit state
             struct["int"] = "{:.0f}".format(int(item, 2))
             # Complex number representing the qubit state
-            struct["val"] = "{:+.5f}".format(amp_arr[i]).strip("()")
+            struct["val"] = "{:+.5f}".format(amp_arr[index]).strip("()")
             # Probability of obtaining the qubit state
             struct["prob"] = "{:.5f}".format(prob_dict[item])
             # Magnitude of the qubit state
-            struct["mag"] = "{:.5f}".format(abs(amp_arr[i]))
+            struct["mag"] = "{:.5f}".format(abs(amp_arr[index]))
             # Phase of the qubit state (obtained by measuring complex number phase, converting to °)
-            struct["phase"] = "{:+.2f}".format(np.degrees(cmath.phase(amp_arr[i]))) + "°"
+            struct["phase"] = "{:+.2f}".format(np.degrees(cmath.phase(amp_arr[index]))) + "°"
             results_dict[item] = struct
-            i = i + 1
         self.results = results_dict
 
     def define_extra_gates(self, qubit_program):
+        ''' Defines quarter & eighth turn gates for the qubit program '''
         # Gates to be used in calculate method
         global POS_SQRT_X, NEG_SQRT_X
         global POS_SQRT_Y, NEG_SQRT_Y
@@ -156,7 +170,7 @@ class calculate_circuit():
                 constructors[gate_name] = gate_def.get_constructor()
                 # Then we can use the new gate
                 qubit_program += gate_def
-        
+
         # Assign gate constructurs
         POS_SQRT_X, NEG_SQRT_X = constructors["POS-SQRT-X"], constructors["NEG-SQRT-X"]
         POS_SQRT_Y, NEG_SQRT_Y = constructors["POS-SQRT-Y"], constructors["NEG-SQRT-Y"]
@@ -167,4 +181,3 @@ class calculate_circuit():
         POS_FTRT_Z, NEG_FTRT_Z = constructors["POS-FTRT-Z"], constructors["NEG-FTRT-Z"]
 
         return qubit_program
-

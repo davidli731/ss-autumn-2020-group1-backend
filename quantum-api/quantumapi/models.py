@@ -64,6 +64,7 @@ class Circuit(db.Model):
     algorithm_grade = db.Column(db.Integer)
     is_submitted = db.Column(db.Boolean, default = False, nullable = False)
     is_graded = db.Column(db.Boolean, default = False, nullable = False)
+    is_deleted = db.Column(db.Boolean, default = False, nullable = False)
     created_date = db.Column(db.DateTime, default=datetime.utcnow)
     updated_date = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -75,4 +76,5 @@ class Circuit(db.Model):
         self.algorithm_grade = grade
         self.is_submitted = False
         self.is_graded = False
+        self.is_deleted = False
         
