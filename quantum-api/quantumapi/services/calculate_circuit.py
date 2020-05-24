@@ -6,6 +6,7 @@ import math
 import cmath
 import json
 import numpy as np
+import emoji
 from pyquil import Program
 from pyquil.quil import DefGate
 import pyquil.gates as pqg
@@ -108,9 +109,9 @@ class calculate_circuit():
         control_qubits = []
         anticontrol_qubits = []
         for index, qubit in enumerate(self.circuit[circuit_col]):
-            if qubit in ("•", "◦"): control_qubits.append(index)
+            if emoji.demojize(qubit) in (":black_circle:", ":white_circle:", "◦", "•"): control_qubits.append(index)
             # List for anticontrol qubits required because of additional requirements to work
-            if qubit in "◦": anticontrol_qubits.append(index)
+            if emoji.demojize(qubit) in (":white_circle:", "◦"): anticontrol_qubits.append(index)
         return control_qubits, anticontrol_qubits
 
     def construct_results_dict(self, qubit_program):
