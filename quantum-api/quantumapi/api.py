@@ -44,7 +44,8 @@ def login():
         'exp': str(datetime.utcnow() + timedelta(minutes=30))},
         current_app.config['SECRET_KEY'])
     student_id = User.query.filter_by(email=data['email']).first().student_id
-    return jsonify({ 'student_id': student_id ,'token': token.decode('UTF-8') }), 200
+    is_admin = User.query.filter_by(email=data['email']).first().is_admin
+    return jsonify({ 'student_id': student_id , 'is_admin': is_admin, 'token': token.decode('UTF-8') }), 200
 
 
 # This is a decorator function which will be used to protect authentication-sensitive API endpoints
