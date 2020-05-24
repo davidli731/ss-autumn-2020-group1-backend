@@ -109,9 +109,9 @@ class calculate_circuit():
         control_qubits = []
         anticontrol_qubits = []
         for index, qubit in enumerate(self.circuit[circuit_col]):
-            if emoji.demojize(qubit) in (":black_circle:", ":white_circle:"): control_qubits.append(index)
+            if emoji.demojize(qubit) in (":black_circle:", ":white_circle:", "◦", "•"): control_qubits.append(index)
             # List for anticontrol qubits required because of additional requirements to work
-            if emoji.demojize(qubit) in ":white_circle:": anticontrol_qubits.append(index)
+            if emoji.demojize(qubit) in (":white_circle:", "◦"): anticontrol_qubits.append(index)
         return control_qubits, anticontrol_qubits
 
     def construct_results_dict(self, qubit_program):
