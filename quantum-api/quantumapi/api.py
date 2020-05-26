@@ -151,6 +151,26 @@ def grade_circuit():
 
         return jsonify({ 'message': e.args }), 500
         
+# Update circuit input/output. Only works with circuit_input and circuit_output_json
+@api.route('/update-circuit', methods=('POST',))
+@cross_origin()
+def update_circuit():
+    try:
+        data = request.get_json()
+        to_update_circuit = Circuit.query.filter_by(circuit_name=data['circuit_name']).filter_by(student_id=data['student_id']).first()
+        if (find_circuit):
+            to_update_circuit.circuit_input = data['circuit_input']
+            to_update_circuit.circuit_output_json = data['circuit_output_json']
+            db.session.commit()
+            return jsonify({ 'message': "Circuit input and output json updated successfully"}), 200
+        else:
+            return jsonify({ 'message': "Circuit not found"}), 400 
+        
+    except exc.SQLAlchemyError as e:
+        db.session.rollback()
+
+        return jsonify({ 'message': e.args }), 500
+        
 # Update circuit flag is_submitted = True based on student_id and circuit name found in payload
 @api.route('/submit-circuit', methods=('POST',))
 @cross_origin()
