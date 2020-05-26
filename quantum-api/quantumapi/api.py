@@ -158,7 +158,7 @@ def update_circuit():
     try:
         data = request.get_json()
         to_update_circuit = Circuit.query.filter_by(circuit_name=data['circuit_name']).filter_by(student_id=data['student_id']).first()
-        if (find_circuit):
+        if (to_update_circuit):
             to_update_circuit.circuit_input = data['circuit_input']
             to_update_circuit.circuit_output_json = data['circuit_output_json']
             db.session.commit()
