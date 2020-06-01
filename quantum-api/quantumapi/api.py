@@ -226,7 +226,10 @@ def retrieve_circuits():
                     all_circuits = db.session.execute('SELECT * FROM circuits')
                     return jsonify({ 'circuits': to_dict(all_circuits)}), 200
                     
-                    #For all other cases, use the dynamically build query    
+                elif data['student_id'] == 'all' and data['submitted_only'] == 'true':
+                    all_circuits = db.session.execute('SELECT * FROM circuits WHERE is_submitted = 1')
+                    return jsonify({ 'circuits': to_dict(all_circuits)}), 200
+                #For all other cases, use the dynamically build query    
                 else:
                     all_circuits = db.session.execute(query_final)                    
                     return jsonify({ 'circuits': to_dict(all_circuits)}), 200
