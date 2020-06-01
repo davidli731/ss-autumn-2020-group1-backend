@@ -205,7 +205,6 @@ def retrieve_circuits():
             else:
                 valid_attributes = 0
                 break
-            
     
         #Continue only if valid attributes exist, thorw 400 bad request if not
         if valid_attributes:
@@ -226,7 +225,7 @@ def retrieve_circuits():
                     all_circuits = db.session.execute('SELECT * FROM circuits')
                     return jsonify({ 'circuits': to_dict(all_circuits)}), 200
                     
-                elif data['student_id'] == 'all' and data['submitted_only'] == 'true':
+                elif data['student_id'] == 'all' and data['is_submitted'] == 'true':
                     all_circuits = db.session.execute('SELECT * FROM circuits WHERE is_submitted = 1')
                     return jsonify({ 'circuits': to_dict(all_circuits)}), 200
                 #For all other cases, use the dynamically build query    
