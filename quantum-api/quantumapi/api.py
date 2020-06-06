@@ -23,11 +23,15 @@ def index():
 
 @api.route('/register', methods=('POST',))
 def register():
-    data = request.get_json()
-    user = User(**data)
-    db.session.add(user)
-    db.session.commit()
-    return jsonify(user.to_dict()), 201
+    try:
+        data = request.get_json()
+        user = User(**data)
+        db.session.add(user)
+        db.session.commit()
+        return jsonify(user.to_dict()), 201
+    except exc.SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({ 'message': e.args }), 500
 
 
 @api.route('/login', methods=('POST',))
